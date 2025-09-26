@@ -6,7 +6,7 @@ services:
     environment:
       - AUDIT_PORT=5140
     ports:
-      - "8082:8080" # health endpoint only
+      - "8082:8080"
     networks:
       - demo
   book-catalogue:

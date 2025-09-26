@@ -22,6 +22,7 @@ namespace BMW.Books.OrderService.Services
         public async Task<Order?> CreateOrderAsync(OrderRequest req)
         {
             var client = _httpClientFactory.CreateClient("books");
+            client.BaseAddress = new Uri(_bookServiceBase);
             var book = await client.GetFromJsonAsync<Book>($"/books/{req.BookId}");
             if (book is null)
                 return null;

@@ -4,10 +4,6 @@ using BMW.Books.CatalogueService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuration
-var auditingHost = builder.Configuration["AUDIT_HOST"] ?? "auditing-service";
-var auditingPort = int.TryParse(builder.Configuration["AUDIT_PORT"], out var p) ? p : 5140;
-
 builder.Services.AddScoped<IAuditService, AuditService>();
 builder.Services.AddSingleton<IBookService, BookService>();
 builder.Services.AddEndpointsApiExplorer();
