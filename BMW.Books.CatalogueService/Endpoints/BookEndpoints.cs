@@ -11,15 +11,15 @@ namespace BMW.Books.CatalogueService.Endpoints
             {
                 var book = bookService.GetBookById(id);
                 return book is not null ? Results.Ok(book) : Results.NotFound();
-            });
+            }).RequireRateLimiting("general");
 
-            app.MapGet("/books", (IBookService bookService) => bookService.GetAllBooks());
+            app.MapGet("/books", (IBookService bookService) => bookService.GetAllBooks()).RequireRateLimiting("general");
 
             app.MapPost("/books", async (BookRequest book, IBookService bookService) =>
             {
                 var added = await bookService.AddBookAsync(book);
                 return Results.Created($"/books/{added.Id}", added);
-            });
+            }).RequireRateLimiting("general");
         }
     }
 }

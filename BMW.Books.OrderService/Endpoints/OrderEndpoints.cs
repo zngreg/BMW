@@ -11,13 +11,13 @@ namespace BMW.Books.OrderService.Endpoints
             {
                 var order = orderService.GetOrderById(id);
                 return order is not null ? Results.Ok(order) : Results.NotFound();
-            });
+            }).RequireRateLimiting("general");
 
             app.MapPost("/orders", async (OrderRequest req, IOrderService orderService) =>
             {
                 var order = await orderService.CreateOrderAsync(req);
                 return order is not null ? Results.Created($"/orders/{order.Id}", order) : Results.BadRequest(new { error = "Could not create order. Invalid book ID?" });
-            });
+            }).RequireRateLimiting("general");
         }
     }
 }

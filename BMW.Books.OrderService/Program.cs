@@ -1,5 +1,6 @@
 using BMW.Books.OrderService.Services;
 using BMW.Books.OrderService.Endpoints;
+using Microsoft.AspNetCore.RateLimiting;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +21,18 @@ builder.Services.AddSingleton<IOrderService, OrderService>();
 var app = builder.Build();
 
 app.Services.GetRequiredService<IAuditServiceFactory>();
+
+// CORS
+builder.Services.AddCors(options =>
+    options.AddDefaultPolicy(policy =>
+        policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
+
+// Rate limiting
+builder.Services.AddRateLimiter(opts =>
+{
+    opts.RejectionStatusCode = 429;
+    opts.AddFixedWindowLimiter("general", o => { o.PermitLimit = 100; o.Window = TimeSpan.FromMinutes(1); o.QueueLimit = 0; });
+});
 
 app.UseSwagger();
 app.UseSwaggerUI();
