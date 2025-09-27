@@ -4,12 +4,12 @@ using System.Text;
 
 namespace BMW.Books.CatalogueService.Services
 {
-    public class AuditService : IAuditService
+    public class UdpAuditService : IAuditService
     {
         private readonly string _auditingHost;
         private readonly int _auditingPort;
 
-        public AuditService(IConfiguration config)
+        public UdpAuditService(IConfiguration config)
         {
             _auditingHost = config["AUDIT_HOST"] ?? "auditing-service";
             _auditingPort = int.TryParse(config["AUDIT_PORT"], out var p) ? p : 5140;

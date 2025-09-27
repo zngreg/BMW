@@ -11,10 +11,15 @@ builder.Services.AddHttpClient("books", c => c.BaseAddress = new Uri(bookService
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<UdpAuditService>();
+builder.Services.AddScoped<RabbitMqAuditService>();
+builder.Services.AddScoped<IAuditServiceFactory, AuditServiceFactory>();
 builder.Services.AddSingleton<IOrderService, OrderService>();
 
+
 var app = builder.Build();
+
+app.Services.GetRequiredService<IAuditServiceFactory>();
 
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -7,9 +7,9 @@ namespace BMW.Books.CatalogueService.Services
         private readonly Dictionary<string, Book> _books = new();
         private readonly IAuditService _auditService;
 
-        public BookService(IAuditService auditService)
+        public BookService(IAuditServiceFactory auditServiceFactory, IServiceProvider serviceProvider)
         {
-            _auditService = auditService;
+            _auditService = auditServiceFactory.Create(serviceProvider);
         }
 
         public async Task<Book> AddBookAsync(BookRequest book)

@@ -4,13 +4,17 @@ using BMW.Books.CatalogueService.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<IAuditService, AuditService>();
+builder.Services.AddScoped<UdpAuditService>();
+builder.Services.AddScoped<RabbitMqAuditService>();
+builder.Services.AddScoped<IAuditServiceFactory, AuditServiceFactory>();
 builder.Services.AddSingleton<IBookService, BookService>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 // builder.Services.AddGlobalRateLimiter();
 
 var app = builder.Build();
+
+app.Services.GetRequiredService<IAuditServiceFactory>();
 
 // app.UseRateLimiter();
 app.UseGlobalErrorHandler();

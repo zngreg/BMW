@@ -1,4 +1,4 @@
-namespace BMW.AuditingService.Services
+namespace BMW.Books.AuditingService.Services
 {
     public interface IAuditListener
     {

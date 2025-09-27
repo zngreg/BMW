@@ -12,11 +12,11 @@ namespace BMW.Books.OrderService.Services
         public OrderService(
             IHttpClientFactory httpClientFactory,
             IConfiguration config,
-            IAuditService auditService)
+            IAuditServiceFactory auditFactory, IServiceProvider serviceProvider)
         {
             _httpClientFactory = httpClientFactory;
             _bookServiceBase = config["BOOKS_BASE_URL"] ?? "http://book-catalogue:8080";
-            _auditService = auditService;
+            _auditService = auditFactory.Create(serviceProvider);
         }
 
         public async Task<Order?> CreateOrderAsync(OrderRequest req)

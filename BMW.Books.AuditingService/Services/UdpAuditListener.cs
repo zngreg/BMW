@@ -1,13 +1,13 @@
 using System.Net.Sockets;
 using System.Text;
 
-namespace BMW.AuditingService.Services
+namespace BMW.Books.AuditingService.Services
 {
-    public class AuditListener : IAuditListener
+    public class UdpAuditListener : IAuditListener
     {
         private readonly int _port;
 
-        public AuditListener(IConfiguration config)
+        public UdpAuditListener(IConfiguration config)
         {
             _port = int.TryParse(config["AUDIT_PORT"], out var p) ? p : 5140;
         }

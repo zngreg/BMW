@@ -1,15 +1,26 @@
-using BMW.AuditingService.Services;
+using BMW.Books.AuditingService.Endpoints;
+using BMW.Books.AuditingService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-builder.Services.AddSingleton<IAuditListener, AuditListener>();
-
+builder.Services.AddSingleton<UdpAuditListener>();
+builder.Services.AddSingleton<RabbitMqAuditListener>();
+builder.Services.AddSingleton<IAuditListenerFactory, AuditListenerFactory>();
 
 var app = builder.Build();
-app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 
-var auditListener = app.Services.GetRequiredService<IAuditListener>();
+var factory = app.Services.GetRequiredService<IAuditListenerFactory>();
 var cts = new CancellationTokenSource();
-_ = Task.Run(() => auditListener.StartAsync(cts.Token));
+// var listener = factory.CreateListener(app.Services);
+// _ = Task.Run(() => listener.StartAsync(cts.Token));
+
+var udpAuditListener = app.Services.GetRequiredService<UdpAuditListener>();
+_ = Task.Run(() => udpAuditListener.StartAsync(cts.Token));
+
+var rabbitMqAuditListener = app.Services.GetRequiredService<RabbitMqAuditListener>();
+_ = Task.Run(() => rabbitMqAuditListener.StartAsync(cts.Token));
 
 app.Lifetime.ApplicationStopping.Register(() => cts.Cancel());
+
+HealthEndpoints.MapHealthEndpoints(app);
+
 app.Run();

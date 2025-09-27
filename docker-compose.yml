@@ -1,4 +1,15 @@
 services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    networks:
+      - demo
   auditing-service:
     build:
       context: ./BMW.Books.AuditingService
@@ -14,8 +25,13 @@ services:
       context: ./BMW.Books.CatalogueService
     container_name: book-catalogue
     environment:
+      - AUDIT_TYPE=queue
       - AUDIT_HOST=auditing-service
       - AUDIT_PORT=5140
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_QUEUE=audit-queue
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
     depends_on:
       - auditing-service
     ports:
@@ -28,11 +44,17 @@ services:
     container_name: order-service
     environment:
       - BOOKS_BASE_URL=http://book-catalogue:8080
+      - AUDIT_TYPE=queue
       - AUDIT_HOST=auditing-service
       - AUDIT_PORT=5140
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_QUEUE=audit-queue
+      - RABBITMQ_USER=guest
+      - RABBITMQ_PASS=guest
     depends_on:
       - book-catalogue
       - auditing-service
+      - rabbitmq
     ports:
       - "8081:8080"
     networks:
