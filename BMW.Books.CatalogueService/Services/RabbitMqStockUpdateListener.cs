@@ -50,7 +50,6 @@ namespace BMW.Books.CatalogueService.Services
                         {
                             var message = Encoding.UTF8.GetString(ea.Body.ToArray());
                             _log.LogInformation("[BookService][RabbitMQ] {Message}", message);
-                            Console.WriteLine($"DBUG => [BookService][RabbitMQ] {message}");
                             var stockUpdateMessage = JsonSerializer.Deserialize<StockUpdateMessage>(message);
                             if (stockUpdateMessage != null)
                             {

@@ -69,7 +69,7 @@ namespace BMW.Books.OrderService.Services
                 await _stockUpdateService.SendStockUpdateAsync(JsonSerializer.Serialize(new StockUpdateMessage { ISBN = item.BookId, StockChange = item.Quantity }));
             }
 
-            await _auditService.SendAuditAsync($"Order placed: {order.Id}\nItems:\n{string.Join("\n", order.Books.Select(b => $"* {b.BookId} | {bookCache[b.BookId].Title} by {bookCache[b.BookId].Author} x{b.Quantity} @ {b.UnitPrice.ToString("C", CultureInfo.CurrentCulture)}"))}\nTotal: {order.TotalPrice.ToString("C", CultureInfo.CurrentCulture)}");
+            await _auditService.SendAuditAsync($"Order placed: {order.Id}\nItems:\n{string.Join("\n", order.Books.Select(b => $"* {b.BookId} | {bookCache[b.BookId].Title} by {bookCache[b.BookId].Author} x{b.Quantity} @ {b.UnitPrice:R0.00}"))}\nTotal: {order.TotalPrice:R0.00}");
             return new ResponseModel<Order?> { IsSuccess = true, Data = order };
         }
 

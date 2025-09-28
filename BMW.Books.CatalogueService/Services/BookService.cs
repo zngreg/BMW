@@ -41,7 +41,7 @@ namespace BMW.Books.CatalogueService.Services
             };
             await _bookRepository.AddOrUpdate(newBook.ISBN, newBook);
 
-            await _auditService.SendAuditAsync($"Book added: {newBook.ISBN} | {newBook.Title} by {newBook.Author} Quantity: {newBook.Stock} @ {newBook.Price.ToString("C", CultureInfo.CurrentCulture)}");
+            await _auditService.SendAuditAsync($"Book added: {newBook.ISBN} | {newBook.Title} by {newBook.Author} Quantity: {newBook.Stock} @ {newBook.Price:R0.00}");
             return new ResponseModel<Book> { IsSuccess = true, Data = newBook };
         }
 
@@ -70,7 +70,7 @@ namespace BMW.Books.CatalogueService.Services
             book.Stock = bookRequest.Stock;
             await _bookRepository.AddOrUpdate(isbn, book);
 
-            await _auditService.SendAuditAsync($"Book updated: {book.ISBN} | {book.Title} by {book.Author} Quantity: {book.Stock} @ {book.Price.ToString("C", CultureInfo.CurrentCulture)}");
+            await _auditService.SendAuditAsync($"Book updated: {book.ISBN} | {book.Title} by {book.Author} Quantity: {book.Stock} @ {book.Price:R0.00}");
 
             return new ResponseModel<Book?> { IsSuccess = true, Data = book };
         }
@@ -92,7 +92,7 @@ namespace BMW.Books.CatalogueService.Services
             book.Stock -= stockChange;
             await _bookRepository.AddOrUpdate(isbn, book);
 
-            await _auditService.SendAuditAsync($"Book stock updated: {book.ISBN} | {book.Title} by {book.Author} Quantity: {book.Stock} @ {book.Price.ToString("C", CultureInfo.CurrentCulture)}");
+            await _auditService.SendAuditAsync($"Book stock updated: {book.ISBN} | {book.Title} by {book.Author} Quantity: {book.Stock} @ {book.Price:R0.00}");
 
             return new ResponseModel<Book?> { IsSuccess = true, Data = book };
         }
