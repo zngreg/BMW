@@ -3,6 +3,7 @@ using BMW.Books.OrderService.Endpoints;
 using BMW.Books.OrderService.Helpers;
 using BMW.Books.OrderService.Middlewares;
 using BMW.Books.OrderService.Clients;
+using BMW.Books.OrderService.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,8 @@ builder.Services.AddHttpClient("books", c => c.BaseAddress = new Uri(bookService
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<UdpAuditService>();
 builder.Services.AddScoped<RabbitMqAuditService>();
 builder.Services.AddScoped<IStockUpdateService, RabbitMqStockUpdateService>();
