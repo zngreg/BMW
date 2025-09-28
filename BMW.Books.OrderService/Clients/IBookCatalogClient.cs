@@ -1,5 +1,3 @@
-using System.Net.Http;
-using System.Threading.Tasks;
 using BMW.Books.OrderService.Models;
 
 namespace BMW.Books.OrderService.Clients
