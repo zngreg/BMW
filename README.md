@@ -2,9 +2,9 @@
 
 Three services, dockerized, minimal, stateless.
 
-- Book Catalogue Service: add, list, get books. Logs to auditing via UDP.
-- Order Service: create and get orders. Checks book existence via HTTP to Book service. Logs to auditing via UDP.
-- Auditing Service: no public API. Listens on UDP and prints messages.
+- Book Catalogue Service: add, list, get books. Logs to auditing via UDP or RabbitMQ.
+- Order Service: create and get orders. Checks book existence via HTTP to Book service. Logs to auditing via UDP or RabbitMQ.
+- Auditing Service: no public API. Listens on UDP and prints messages and RabbitMQ.
 
 ## Prerequisites
 

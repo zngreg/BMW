@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json;
 using BMW.Books.OrderService.Models;
 using BMW.Books.OrderService.Repositories;
@@ -77,6 +76,12 @@ namespace BMW.Books.OrderService.Services
         {
             var order = await _orderRepository.GetOrderByIdAsync(id);
             return await Task.FromResult(order is not null ? new ResponseModel<Order?> { IsSuccess = true, Data = order } : new ResponseModel<Order?> { IsSuccess = false, Reason = "Order not found" });
+        }
+
+        public async Task<ResponseModel<IEnumerable<Order>?>> GetAllOrdersAsnyc()
+        {
+            var orders = await _orderRepository.GetAllOrdersAsync();
+            return orders is not null ? new ResponseModel<IEnumerable<Order>?> { IsSuccess = true, Data = orders.Select(x => x.Value) } : new ResponseModel<IEnumerable<Order>?> { IsSuccess = false, Reason = "Orders not found" };
         }
 
         private async Task<ResponseModel<Book?>> ValidateOrderItem(RequestItem item)

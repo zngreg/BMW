@@ -13,12 +13,14 @@ namespace BMW.Books.OrderService.Repositories
             _cache = cache;
         }
 
-        public Dictionary<string, Order> Orders => _cache.GetOrCreate(CacheKey, _ => new Dictionary<string, Order>());
+        public Dictionary<string, Order>? Orders => _cache.GetOrCreate(CacheKey, _ => new Dictionary<string, Order>());
 
         public Task<Order?> GetOrderByIdAsync(string orderId)
         {
             return Task.FromResult(Orders.TryGetValue(orderId, out Order? order) ? order : null);
         }
+
+        public async Task<Dictionary<string, Order>> GetAllOrdersAsync() => await Task.FromResult(Orders);
 
         public Task<Order> CreateOrderAsync(Order order)
         {

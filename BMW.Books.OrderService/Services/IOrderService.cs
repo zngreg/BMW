@@ -6,5 +6,6 @@ namespace BMW.Books.OrderService.Services
     {
         Task<ResponseModel<Order?>> CreateOrderAsync(OrderRequest req);
         Task<ResponseModel<Order?>> GetOrderByIdAsync(string id);
+        Task<ResponseModel<IEnumerable<Order>>> GetAllOrdersAsnyc();
     }
 }

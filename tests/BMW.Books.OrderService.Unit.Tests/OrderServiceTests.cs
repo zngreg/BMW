@@ -229,5 +229,49 @@ namespace BMW.Books.OrderService.Unit.Tests
             Assert.That(result.Data.Books.First().UnitPrice, Is.EqualTo(15.99m));
             Assert.That(result.Data.TotalPrice, Is.EqualTo(79.95m));
         }
+
+        [Test]
+        public async Task GetAllOrders_ReturnsOrdersIfFound()
+        {
+            _auditFactoryMock.Setup(f => f.Create(It.IsAny<IServiceProvider>())).Returns(new Mock<IAuditService>().Object);
+            _serviceProviderMock.Setup(sp => sp.GetService(typeof(IAuditService))).Returns(_auditServiceMock.Object);
+            _serviceProviderMock.Setup(x => x.GetService(typeof(IStockUpdateService))).Returns(_auditServiceMock.Object);
+            _serviceProviderMock.Setup(x => x.GetService(typeof(Clients.IBookCatalogClient))).Returns(_bookCatalogClient.Object);
+
+            var orders = new Dictionary<string, Order>
+            {
+                {
+                    "1234567890",
+                    new Order
+                    {
+                        Id = "1234567890",
+                        Books = new List<OrderBook>
+                        {
+                            new OrderBook { BookId = "1234567890", Quantity = 5, UnitPrice = 15.99m }
+                        }
+                    }
+                }
+            };
+
+            _mockOrderRepository.Setup(x => x.GetAllOrdersAsync()).ReturnsAsync(orders);
+
+            _service = new Services.OrderService(
+                _auditFactoryMock.Object,
+                _serviceProviderMock.Object,
+                _stockUpdateService.Object,
+                _bookCatalogClient.Object,
+                _mockOrderRepository.Object
+            );
+
+            var result = await _service.GetAllOrdersAsnyc();
+
+            Assert.That(result.IsSuccess, Is.True);
+            Assert.That(result.Data, Is.Not.Null);
+            Assert.That(result.Data.Count(), Is.EqualTo(1));
+            Assert.That(result.Data.First().Books.First().BookId, Is.EqualTo("1234567890"));
+            Assert.That(result.Data.First().Books.First().Quantity, Is.EqualTo(5));
+            Assert.That(result.Data.First().Books.First().UnitPrice, Is.EqualTo(15.99m));
+            Assert.That(result.Data.First().TotalPrice, Is.EqualTo(79.95m));
+        }
     }
 }

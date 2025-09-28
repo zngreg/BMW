@@ -12,6 +12,11 @@ namespace BMW.Books.OrderService.Endpoints
                 return await orderService.GetOrderByIdAsync(id);
             });
 
+            app.MapGet("/orders", async (IOrderService orderService) =>
+            {
+                return await orderService.GetAllOrdersAsnyc();
+            });
+
             app.MapPost("/orders", async (OrderRequest req, IOrderService orderService) =>
             {
                 var v = validate(req); if (v is IResult res && res.GetType() != Results.Ok().GetType()) return res;
