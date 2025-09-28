@@ -2,16 +2,19 @@ using BMW.Books.CatalogueService.Services;
 using BMW.Books.CatalogueService.Endpoints;
 using BMW.Books.CatalogueService.Middlewares;
 using BMW.Books.CatalogueService.Helpers;
+using BMW.Books.CatalogueService.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddSingleton<IBookRepository, BookRepository>();
 builder.Services.AddScoped<UdpAuditService>();
 builder.Services.AddScoped<RabbitMqAuditService>();
 builder.Services.AddScoped<IAuditServiceFactory, AuditServiceFactory>();
-builder.Services.AddSingleton<IBookService, BookService>();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<IStockUpdateListener, RabbitMqStockUpdateListener>();
+builder.Services.AddScoped<IBookService, BookService>();
+builder.Services.AddScoped<IStockUpdateListener, RabbitMqStockUpdateListener>();
 
 var app = builder.Build();
 

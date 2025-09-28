@@ -18,7 +18,7 @@ builder.Services.AddScoped<RabbitMqAuditService>();
 builder.Services.AddScoped<IStockUpdateService, RabbitMqStockUpdateService>();
 builder.Services.AddScoped<IAuditServiceFactory, AuditServiceFactory>();
 builder.Services.AddScoped<IBookCatalogClient, BookCatalogClient>();
-builder.Services.AddSingleton<IOrderService, OrderService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
 
 var app = builder.Build();
 
