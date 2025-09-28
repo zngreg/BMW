@@ -1,7 +1,8 @@
 using BMW.Books.OrderService.Services;
 using BMW.Books.OrderService.Endpoints;
-using Microsoft.AspNetCore.RateLimiting;
-
+using BMW.Books.OrderService.Helpers;
+using BMW.Books.OrderService.Middlewares;
+using BMW.Books.OrderService.Clients;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,30 +15,25 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddScoped<UdpAuditService>();
 builder.Services.AddScoped<RabbitMqAuditService>();
+builder.Services.AddScoped<IStockUpdateService, RabbitMqStockUpdateService>();
 builder.Services.AddScoped<IAuditServiceFactory, AuditServiceFactory>();
+builder.Services.AddScoped<IBookCatalogClient, BookCatalogClient>();
 builder.Services.AddSingleton<IOrderService, OrderService>();
-
 
 var app = builder.Build();
 
-app.Services.GetRequiredService<IAuditServiceFactory>();
-
-// CORS
-builder.Services.AddCors(options =>
-    options.AddDefaultPolicy(policy =>
-        policy.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin()));
-
-// Rate limiting
-builder.Services.AddRateLimiter(opts =>
-{
-    opts.RejectionStatusCode = 429;
-    opts.AddFixedWindowLimiter("general", o => { o.PermitLimit = 100; o.Window = TimeSpan.FromMinutes(1); o.QueueLimit = 0; });
-});
-
+// Swagger
 app.UseSwagger();
 app.UseSwaggerUI();
 
-OrderEndpoints.MapOrderEndpoints(app);
+app.Services.GetRequiredService<IAuditServiceFactory>();
+
+// Endpoints
+OrderEndpoints.MapOrderEndpoints(app, ValidationHelper.Validate);
 HealthEndpoints.MapHealthEndpoints(app);
+
+// Global error handler
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+app.UseGlobalErrorHandler(logger);
 
 app.Run();

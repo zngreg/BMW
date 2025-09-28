@@ -5,21 +5,22 @@ namespace BMW.Books.CatalogueService.Endpoints
 {
     public static class BookEndpoints
     {
-        public static void MapBookEndpoints(this WebApplication app)
+        public static void MapBookEndpoints(this WebApplication app, Func<object, IResult> validate)
         {
-            app.MapGet("/books/{id}", (string id, IBookService bookService) =>
+            app.MapGet("/books/{isbn}", async (string isbn, IBookService bookService) =>
             {
-                var book = bookService.GetBookById(id);
-                return book is not null ? Results.Ok(book) : Results.NotFound();
-            }).RequireRateLimiting("general");
+                return await bookService.GetBookByISBNAsync(isbn);
+            });
 
-            app.MapGet("/books", (IBookService bookService) => bookService.GetAllBooks()).RequireRateLimiting("general");
+            app.MapGet("/books", async (IBookService bookService) => await bookService.GetAllBooksAsync());
 
             app.MapPost("/books", async (BookRequest book, IBookService bookService) =>
             {
+                var v = validate(book); if (v is IResult res && res.GetType() != Results.Ok().GetType()) return res;
+
                 var added = await bookService.AddBookAsync(book);
-                return Results.Created($"/books/{added.Id}", added);
-            }).RequireRateLimiting("general");
+                return added.IsSuccess ? Results.Created($"/books/{added.Data?.ISBN}", added) : Results.BadRequest(added);
+            });
         }
     }
 }

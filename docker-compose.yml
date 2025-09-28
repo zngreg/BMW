@@ -16,6 +16,8 @@ services:
     container_name: auditing-service
     environment:
       - AUDIT_PORT=5140
+    depends_on:
+      - rabbitmq
     ports:
       - "8082:8080"
     networks:
@@ -30,10 +32,12 @@ services:
       - AUDIT_PORT=5140
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_QUEUE=audit-queue
+      - RABBITMQ_STOCK_UPDATE_QUEUE=stock-update-queue
       - RABBITMQ_USER=guest
       - RABBITMQ_PASS=guest
     depends_on:
       - auditing-service
+      - rabbitmq
     ports:
       - "8080:8080"
     networks:
@@ -49,6 +53,7 @@ services:
       - AUDIT_PORT=5140
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_QUEUE=audit-queue
+      - RABBITMQ_STOCK_UPDATE_QUEUE=stock-update-queue
       - RABBITMQ_USER=guest
       - RABBITMQ_PASS=guest
     depends_on:

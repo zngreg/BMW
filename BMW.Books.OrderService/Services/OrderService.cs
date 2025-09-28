@@ -1,48 +1,90 @@
+using System.Globalization;
+using System.Text.Json;
 using BMW.Books.OrderService.Models;
 
 namespace BMW.Books.OrderService.Services
 {
     public class OrderService : IOrderService
     {
-        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IStockUpdateService _stockUpdateService;
         private readonly Dictionary<string, Order> _orders = new();
-        private readonly string _bookServiceBase;
         private readonly IAuditService _auditService;
+        private readonly Clients.IBookCatalogClient _bookCatalogClient;
 
         public OrderService(
-            IHttpClientFactory httpClientFactory,
-            IConfiguration config,
-            IAuditServiceFactory auditFactory, IServiceProvider serviceProvider)
+            IAuditServiceFactory auditFactory,
+            IServiceProvider serviceProvider,
+            IStockUpdateService stockUpdateService,
+            Clients.IBookCatalogClient bookCatalogClient)
         {
-            _httpClientFactory = httpClientFactory;
-            _bookServiceBase = config["BOOKS_BASE_URL"] ?? "http://book-catalogue:8080";
+            _stockUpdateService = stockUpdateService;
             _auditService = auditFactory.Create(serviceProvider);
+            _bookCatalogClient = bookCatalogClient;
         }
 
-        public async Task<Order?> CreateOrderAsync(OrderRequest req)
+        public async Task<ResponseModel<Order?>> CreateOrderAsync(OrderRequest req)
         {
-            var client = _httpClientFactory.CreateClient("books");
-            client.BaseAddress = new Uri(_bookServiceBase);
-            var book = await client.GetFromJsonAsync<Book>($"/books/{req.BookId}");
-            if (book is null)
-                return null;
+            IEnumerable<OrderBook> orderItems = [];
+            Dictionary<string, Book?> bookCache = new();
+
+            foreach (var item in req.Books)
+            {
+                var validationResult = await ValidateOrderItem(item);
+                if (!validationResult.IsSuccess)
+                {
+                    await _auditService.SendAuditAsync($"Order item validation failed for BookId: {item.BookId}, Reason: {validationResult.Reason}");
+                    return new ResponseModel<Order?> { IsSuccess = false, Reason = validationResult.Reason };
+                }
+
+                bookCache[item.BookId] = validationResult.Data;
+
+                orderItems = orderItems.Append(new OrderBook
+                {
+                    BookId = item.BookId,
+                    Quantity = item.Quantity,
+                    UnitPrice = validationResult.Data?.Price ?? 0
+                });
+            }
 
             var order = new Order
             {
                 Id = Guid.NewGuid().ToString("N"),
-                BookId = req.BookId,
-                Quantity = req.Quantity <= 0 ? 1 : req.Quantity,
-                UnitPrice = book.Price,
+                Books = orderItems,
                 CreatedAtUtc = DateTime.UtcNow
             };
             _orders[order.Id] = order;
-            await _auditService.SendAuditAsync($"Order placed: {order.Id} | Book {order.BookId} x{order.Quantity} @ {order.UnitPrice}");
-            return order;
+
+            foreach (var item in order.Books)
+            {
+                await _stockUpdateService.SendStockUpdateAsync(JsonSerializer.Serialize(new StockUpdateMessage { ISBN = item.BookId, StockChange = item.Quantity }));
+            }
+
+            await _auditService.SendAuditAsync($"Order placed: {order.Id}\nItems:\n{string.Join("\n", order.Books.Select(b => $"* {b.BookId} | {bookCache[b.BookId]?.Title} by {bookCache[b.BookId]?.Author} x{b.Quantity} @ {b.UnitPrice.ToString("C", CultureInfo.CurrentCulture)}"))}\nTotal: {order.TotalPrice.ToString("C", CultureInfo.CurrentCulture)}");
+            return new ResponseModel<Order?> { IsSuccess = true, Data = order };
         }
 
-        public Order? GetOrderById(string id)
+        public async Task<ResponseModel<Order?>> GetOrderByIdAsync(string id)
         {
-            return _orders.TryGetValue(id, out var o) ? o : null;
+            return await Task.FromResult(_orders.TryGetValue(id, out var outputOrder) ? new ResponseModel<Order?> { IsSuccess = true, Data = outputOrder } : new ResponseModel<Order?> { IsSuccess = false, Reason = "Order not found" });
+        }
+
+        private async Task<ResponseModel<Book?>> ValidateOrderItem(RequestItem item)
+        {
+            if (item.Quantity <= 0)
+                return new ResponseModel<Book?> { IsSuccess = false, Reason = "Quantity must be greater than zero" };
+
+            var book = await _bookCatalogClient.GetBookByIdAsync(item.BookId);
+            if (!book.IsSuccess || book.Data is null)
+                return new ResponseModel<Book?> { IsSuccess = false, Reason = $"Book with ID {item.BookId} not found" };
+
+            if (item.Quantity > book.Data.Stock)
+                return new ResponseModel<Book?> { IsSuccess = false, Reason = $"Not enough stock for book {item.BookId}" };
+
+            return new ResponseModel<Book?>
+            {
+                IsSuccess = true,
+                Data = book.Data
+            };
         }
     }
 }

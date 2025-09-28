@@ -4,8 +4,10 @@ namespace BMW.Books.CatalogueService.Services
 {
     public interface IBookService
     {
-        Task<Book> AddBookAsync(BookRequest book);
-        IEnumerable<Book> GetAllBooks();
-        Book? GetBookById(string id);
+        Task<ResponseModel<Book>> AddBookAsync(BookRequest book);
+        Task<ResponseModel<IEnumerable<Book?>>> GetAllBooksAsync();
+        Task<ResponseModel<Book?>> GetBookByISBNAsync(string isbn);
+        Task<ResponseModel<Book?>> UpdateBookAsync(string isbn, BookRequest book);
+        Task<ResponseModel<Book?>> UpdateBookStockAsync(string isbn, int stockChange);
     }
 }

@@ -4,7 +4,7 @@ namespace BMW.Books.OrderService.Services
 {
     public interface IOrderService
     {
-        Task<Order?> CreateOrderAsync(OrderRequest req);
-        Order? GetOrderById(string id);
+        Task<ResponseModel<Order?>> CreateOrderAsync(OrderRequest req);
+        Task<ResponseModel<Order?>> GetOrderByIdAsync(string id);
     }
 }
