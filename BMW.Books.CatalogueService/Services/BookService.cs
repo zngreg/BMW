@@ -1,4 +1,3 @@
-using System.Globalization;
 using BMW.Books.CatalogueService.Models;
 using BMW.Books.CatalogueService.Repositories;
 
